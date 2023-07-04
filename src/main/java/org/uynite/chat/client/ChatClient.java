@@ -1,5 +1,6 @@
 package org.uynite.chat.client;
 
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketConnectionManager;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -9,7 +10,7 @@ public class ChatClient {
 
     private static final String WEBSOCKET_URL = "ws://localhost:8080/chat";
 
-    public static void main(String[] args) {
+    public static void startClient() {
         WebSocketConnectionManager connectionManager = new WebSocketConnectionManager(
                 new StandardWebSocketClient(),
                 new ChatWebSocketHandler(),
