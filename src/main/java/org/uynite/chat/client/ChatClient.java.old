@@ -1,0 +1,59 @@
+package org.uynite.chat.client;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.client.WebSocketConnectionManager;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import java.time.LocalDateTime;
+
+public class ChatClient {
+
+    private static final String WEBSOCKET_URL = "ws://localhost:8080/chat";
+
+    public static void startClient(ChatMessage message) {
+        WebSocketConnectionManager connectionManager = new WebSocketConnectionManager(
+                new StandardWebSocketClient(),
+                new ChatWebSocketHandler(message),
+                WEBSOCKET_URL
+        );
+        connectionManager.start();
+    }
+
+    static class ChatWebSocketHandler extends TextWebSocketHandler {
+
+        ChatMessage chatMessage;
+        ChatWebSocketHandler(ChatMessage message){
+            this.chatMessage = message;
+        }
+
+        @Override
+        public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+            String message = "Hello, chat server!"; // Replace with the actual message
+            session.getAttributes().put("receiverId",chatMessage.getReceiverId());
+            // Construct the chat message JSON payload
+            String payload = "{\"senderId\":\"" + chatMessage.getSenderId() + "\","
+                    +"\"receiverId\":\"" + chatMessage.getReceiverId() + "\","
+                    +"\"message\":\"" + message + "\","
+                    +"\"timestamp\":\"" + LocalDateTime.now().toString() + "\""
+                    +"}";
+
+            String jsonString = "{\"senderId\":\"123\",\"receiverId\":\"456\",\"message\":\"Hello, chat server!\",\"timestamp\":\"2023-07-04T12:16:11.114721\"}";
+
+            //ObjectMapper objectMapper = new ObjectMapper();
+            //String jsonString = objectMapper.writeValueAsString(chatMessage);// Send the chat message as a WebSocket text message
+            System.out.println("Json String from client: "+payload);
+            session.sendMessage(new TextMessage(payload));
+        }
+
+        @Override
+        protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+            // Handle incoming WebSocket text messages
+            System.out.println("Got Message from"+session.getAttributes().get("userId"));
+            System.out.println(message);
+        }
+    }
+}
+
